@@ -2,12 +2,11 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { email, startup_id } = req.body;
-
   if (!email || !startup_id) return res.status(400).json({ error: "Missing fields" });
 
   const SUPABASE_URL = "https://ehlvuzvqornzoaftekap.supabase.co";
-  const SUPABASE_KEY = "sb_secret_Lpyo9Gl4jNR4SBQ-zjFpjQ_nUh6zpC5";
-  const RESEND_KEY = "re_CrEd763a_QV8WkPFnmmfmqspAXC7PB8Bm";
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  const RESEND_KEY = process.env.RESEND_API_KEY;
 
   const checkRes = await fetch(
     `${SUPABASE_URL}/rest/v1/votes?email=eq.${encodeURIComponent(email.toLowerCase())}&verified=eq.true&select=id`,
