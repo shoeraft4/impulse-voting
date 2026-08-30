@@ -115,12 +115,17 @@ export default function VotingApp() {
 
   if (loading) return (
     <div style={{minHeight:"100vh", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
-      <div style={{color:C.textDim, fontSize:14}}>Loading...</div>
+      <div style={{color:C.textDim, fontSize:14}}>Warming up the leaderboard...</div>
     </div>
   );
 
   return (
-    <div style={{minHeight:"100vh", background:C.bg, color:C.text, fontFamily:"Inter, system-ui, sans-serif"}}>
+    <div style={{minHeight:"100vh", background:C.bg, backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 0L56 16.2V49.8L28 66L0 49.8V16.2Z' fill='none' stroke='%23233052' stroke-width='1' opacity='0.35'/%3E%3C/svg%3E")`, backgroundSize:"56px 100px", color:C.text, fontFamily:"Inter, system-ui, sans-serif"}}>
+      <style>{`
+        @keyframes popIn { 0% { transform: translateY(6px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-70px) rotate(20deg); opacity: 0; } }
+        @keyframes leaderGlow { 0%, 100% { box-shadow: 0 0 0 1px ${C.accentBorder}; } 50% { box-shadow: 0 0 14px 1px ${C.accentBorder}; } }
+      `}</style>
       <div style={{borderBottom:`1px solid ${C.divider}`, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, background:C.header, zIndex:10, flexWrap:"wrap", gap:16}}>
         <div style={{display:"flex", alignItems:"center", gap:16}}>
           <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
@@ -155,18 +160,19 @@ export default function VotingApp() {
             <div style={{display:"flex", alignItems:"flex-start", gap:10, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 16px", marginBottom:28}}>
               <span style={{fontSize:16, lineHeight:1.4}}>🏆</span>
               <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
-                The <strong style={{color:C.text}}>top 4 startups</strong> will get a spot at the Impulse Summit, October 29 at 5:45 PM.
+                The <strong style={{color:C.text}}>top 🍫 startups</strong> will get a spot at the Impulse Summit, October 29 at 5:45 PM.
               </div>
             </div>
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
               {sortedStartups.map((s, idx) => {
                 const v = votes[s.id] || 0;
                 const pct = Math.round((v / maxVotes) * 100);
+                const isLeader = idx === 0 && v > 0;
                 return (
                 <div key={s.id} onClick={() => { setSelectedId(s.id); setStep("confirm"); setError(""); setEmail(""); }}
-                  style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:12, padding:"16px 20px", cursor:"pointer", position:"relative", overflow:"hidden", transition:"border-color 0.15s"}}
+                  style={{background:C.panel, border:`1px solid ${isLeader ? C.accent : C.panelBorder}`, borderRadius:12, padding:"16px 20px", cursor:"pointer", position:"relative", overflow:"hidden", transition:"border-color 0.15s", animation: isLeader ? "leaderGlow 2.5s ease-in-out infinite" : "none"}}
                   onMouseOver={e => e.currentTarget.style.borderColor=C.accent}
-                  onMouseOut={e => e.currentTarget.style.borderColor=C.panelBorder}>
+                  onMouseOut={e => e.currentTarget.style.borderColor=isLeader ? C.accent : C.panelBorder}>
                   <div style={{position:"absolute", left:0, bottom:0, height:2, width:`${pct}%`, background:C.accent, opacity:0.5, transition:"width 0.4s"}} />
                   <div style={{display:"flex", alignItems:"center", gap:16}}>
                     <div style={{fontSize: idx < 3 ? 18 : 12, color:C.textFaint, width:20, textAlign:"center", flexShrink:0}}>{idx < 3 ? MEDALS[idx] : idx+1}</div>
@@ -232,8 +238,13 @@ export default function VotingApp() {
         )}
 
         {step === "check_email" && (
-          <div style={{textAlign:"center", maxWidth:400, margin:"60px auto"}}>
-            <div style={{fontSize:48, marginBottom:16}}>📧</div>
+          <div style={{textAlign:"center", maxWidth:400, margin:"60px auto", position:"relative"}}>
+            <div style={{position:"absolute", top:0, left:"50%", width:0, height:0}}>
+              {["🎉","🍫","✨","🎉","🍫"].map((e, i) => (
+                <span key={i} style={{position:"absolute", left:(i-2)*22, fontSize:18, animation:`floatUp 1.6s ease-out ${i*0.12}s 1`}}>{e}</span>
+              ))}
+            </div>
+            <div style={{fontSize:48, marginBottom:16, animation:"popIn 0.4s ease-out"}}>📧</div>
             <div style={{fontSize:24, fontWeight:700, marginBottom:8}}>Check your email!</div>
             <div style={{color:C.textDim, fontSize:14, marginBottom:24}}>We sent a confirmation link to <span style={{color:C.accent}}>{email}</span>. Click it to confirm your vote, unconfirmed votes don't count.</div>
             <div style={{fontSize:12, color:C.textFaint, marginBottom:20}}>The link expires in 24 hours.</div>
