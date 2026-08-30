@@ -160,7 +160,7 @@ export default function VotingApp() {
             <div style={{display:"flex", alignItems:"flex-start", gap:10, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 16px", marginBottom:28}}>
               <span style={{fontSize:16, lineHeight:1.4}}>🏆</span>
               <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
-                The <strong style={{color:C.text}}>top 🍫 startups</strong> will get a spot at the Impulse Summit, October 29 at 5:45 PM.
+                The <strong style={{color:C.text}}>top 4 startups</strong> will get a spot at the Impulse Summit, October 29 at 5:45 PM.
               </div>
             </div>
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
@@ -175,7 +175,7 @@ export default function VotingApp() {
                   onMouseOut={e => e.currentTarget.style.borderColor=isLeader ? C.accent : C.panelBorder}>
                   <div style={{position:"absolute", left:0, bottom:0, height:2, width:`${pct}%`, background:C.accent, opacity:0.5, transition:"width 0.4s"}} />
                   <div style={{display:"flex", alignItems:"center", gap:16}}>
-                    <div style={{fontSize: idx < 3 ? 18 : 12, color:C.textFaint, width:20, textAlign:"center", flexShrink:0}}>{idx < 3 ? MEDALS[idx] : idx+1}</div>
+                    <div style={{fontSize: idx < 3 ? 18 : idx === 3 ? 16 : 12, color:C.textFaint, width:20, textAlign:"center", flexShrink:0}}>{idx < 3 ? MEDALS[idx] : idx === 3 ? "🍫" : idx+1}</div>
                     <div style={{width:48, height:48, borderRadius:10, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
                       <img src={s.logo} alt={s.name} style={{width:40, height:40, objectFit:"contain"}} />
                     </div>
