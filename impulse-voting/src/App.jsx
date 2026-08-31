@@ -184,10 +184,20 @@ export default function VotingApp() {
         @keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
       `}</style>
       <div style={{borderBottom:`1px solid ${C.divider}`, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, background:C.header, zIndex:10, flexWrap:"wrap", gap:16}}>
-        <div style={{display:"flex", alignItems:"center", gap:16}}>
-          <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
+        <div style={{display:"flex", alignItems:"center", gap:16, position:"relative"}}>
+          <button onClick={() => setShowAbout(v => !v)} title="About Impulse Network"
+            style={{background:"none", border:"none", padding:0, cursor:"pointer", display:"flex", alignItems:"center"}}>
+            <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
+          </button>
           <div style={{width:1, height:26, background:C.divider}} />
           <img src={STN_LOGO} alt="Sports Tech Nation" style={{height:22, width:"auto"}} />
+          {showAbout && (
+            <div style={{position:"absolute", top:"calc(100% + 12px)", left:0, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"14px 18px", display:"flex", flexDirection:"column", gap:9, zIndex:30, minWidth:230, boxShadow:"0 10px 28px rgba(0,0,0,0.45)"}}>
+              <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🌐 impulse.network</a>
+              <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🏆 Startup Competition</a>
+              <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🎟️ Get your Summit ticket</a>
+            </div>
+          )}
         </div>
         <div style={{fontSize:11, color:C.textDim, textAlign:"right"}}>
           {hasVoted ? (
@@ -395,10 +405,6 @@ export default function VotingApp() {
               <div style={{fontSize:11, fontWeight:700, color:C.textFaint, textTransform:"uppercase", letterSpacing:0.4, marginBottom:4}}>How does it work?</div>
               <div style={{fontSize:13.5, color:C.text, lineHeight:1.5}}>{detailStartup.how}</div>
             </div>
-            <div style={{marginBottom:22}}>
-              <div style={{fontSize:11, fontWeight:700, color:C.textFaint, textTransform:"uppercase", letterSpacing:0.4, marginBottom:4}}>Traction</div>
-              <div style={{fontSize:13.5, color:C.text, lineHeight:1.5}}>{detailStartup.traction}</div>
-            </div>
             <div style={{display:"flex", gap:10}}>
               <button onClick={(e) => toggleShortlist(detailStartup.id, e)}
                 style={{background:shortlist.has(detailStartup.id) ? C.accentSoft : C.header, border:`1px solid ${shortlist.has(detailStartup.id) ? C.accent : C.panelBorder}`, borderRadius:10, padding:"12px 16px", color:C.text, cursor:"pointer", fontSize:13, whiteSpace:"nowrap"}}>
@@ -414,16 +420,7 @@ export default function VotingApp() {
       )}
 
       <div style={{textAlign:"center", padding:"24px 16px 40px", fontSize:11, color:C.textFaint}}>
-        <button onClick={() => setShowAbout(v => !v)} style={{background:"none", border:"none", color:C.textFaint, cursor:"pointer", fontSize:11, padding:0, textDecoration:"underline"}}>
-          Impulse Network x Sports Tech Nation · Startup Competition 2026
-        </button>
-        {showAbout && (
-          <div style={{display:"flex", flexDirection:"column", gap:6, alignItems:"center", marginTop:10}}>
-            <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.accent, fontSize:11}}>About Impulse Network</a>
-            <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.accent, fontSize:11}}>How the Startup Competition works</a>
-            <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.accent, fontSize:11}}>Get your Impulse Summit ticket</a>
-          </div>
-        )}
+        Impulse Network x Sports Tech Nation · Startup Competition 2026
       </div>
     </div>
   );
