@@ -202,27 +202,23 @@ export default function VotingApp() {
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
               {randomOrder.map((s) => (
                 <div key={s.id} onClick={() => setDetailId(s.id)}
-                  style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:12, padding:"16px 20px", cursor:"pointer", transition:"border-color 0.15s"}}
+                  style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:12, padding:"14px 16px", cursor:"pointer", transition:"border-color 0.15s"}}
                   onMouseOver={e => e.currentTarget.style.borderColor=C.accent}
                   onMouseOut={e => e.currentTarget.style.borderColor=C.panelBorder}>
-                  <div style={{display:"flex", alignItems:"center", gap:14}}>
-                    <div style={{width:48, height:48, borderRadius:10, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
-                      <img src={s.logo} alt={s.name} style={{width:40, height:40, objectFit:"contain"}} />
+                  <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:10}}>
+                    <div style={{width:40, height:40, borderRadius:9, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+                      <img src={s.logo} alt={s.name} style={{width:32, height:32, objectFit:"contain"}} />
                     </div>
-                    <div style={{flex:1, minWidth:0}}>
-                      <div style={{fontWeight:600, fontSize:15, marginBottom:4}}>{s.name}</div>
-                      <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                        <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"2px 7px"}}>{s.category}</span>
-                        <span style={{fontSize:12, color:C.textDim}}>{s.tagline}</span>
-                      </div>
-                    </div>
-                    <div style={{display:"flex", alignItems:"center", gap:12, flexShrink:0}}>
-                      <span style={{fontSize:11, color:C.textFaint, whiteSpace:"nowrap"}}>Learn more</span>
-                      <button onClick={(e) => { e.stopPropagation(); goVote(s.id); }}
-                        style={{background:C.accent, color:C.accentText, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap"}}>
-                        Vote →
-                      </button>
-                    </div>
+                    <div style={{flex:1, minWidth:0, fontWeight:600, fontSize:15, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{s.name}</div>
+                    <span style={{fontSize:9.5, fontWeight:700, letterSpacing:0.3, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"3px 7px", flexShrink:0, whiteSpace:"nowrap"}}>{s.category}</span>
+                  </div>
+                  <div style={{fontSize:12.5, color:C.textDim, lineHeight:1.45, marginBottom:12, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>{s.tagline}</div>
+                  <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+                    <span style={{fontSize:11, color:C.textFaint}}>Learn more</span>
+                    <button onClick={(e) => { e.stopPropagation(); goVote(s.id); }}
+                      style={{background:C.accent, color:C.accentText, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap"}}>
+                      Vote →
+                    </button>
                   </div>
                 </div>
               ))}
