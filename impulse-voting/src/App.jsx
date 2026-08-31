@@ -80,7 +80,6 @@ export default function VotingApp() {
   const [showShortlistOnly, setShowShortlistOnly] = useState(false);
   const [detailId, setDetailId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showAbout, setShowAbout] = useState(false);
   const [resent, setResent] = useState(false);
   const countdown = useCountdown(VOTE_END);
   const selected = STARTUPS.find(s => s.id === selectedId);
@@ -184,20 +183,16 @@ export default function VotingApp() {
         @keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
       `}</style>
       <div style={{borderBottom:`1px solid ${C.divider}`, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, background:C.header, zIndex:10, flexWrap:"wrap", gap:16}}>
-        <div style={{display:"flex", alignItems:"center", gap:16, position:"relative"}}>
-          <button onClick={() => setShowAbout(v => !v)} title="About Impulse Network"
-            style={{background:"none", border:"none", padding:0, cursor:"pointer", display:"flex", alignItems:"center"}}>
-            <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
-          </button>
+        <div style={{display:"flex", alignItems:"center", gap:16, flexWrap:"wrap"}}>
+          <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
           <div style={{width:1, height:26, background:C.divider}} />
           <img src={STN_LOGO} alt="Sports Tech Nation" style={{height:22, width:"auto"}} />
-          {showAbout && (
-            <div style={{position:"absolute", top:"calc(100% + 12px)", left:0, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"14px 18px", display:"flex", flexDirection:"column", gap:9, zIndex:30, minWidth:230, boxShadow:"0 10px 28px rgba(0,0,0,0.45)"}}>
-              <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🌐 impulse.network</a>
-              <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🏆 Startup Competition</a>
-              <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.text, fontSize:12.5}}>🎟️ Get your Summit ticket</a>
-            </div>
-          )}
+          <div style={{width:1, height:26, background:C.divider}} />
+          <nav style={{display:"flex", alignItems:"center", gap:16}}>
+            <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>About us</a>
+            <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Startup Competition</a>
+            <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Get your ticket</a>
+          </nav>
         </div>
         <div style={{fontSize:11, color:C.textDim, textAlign:"right"}}>
           {hasVoted ? (
