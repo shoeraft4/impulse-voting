@@ -50,8 +50,19 @@ function shuffle(arr) {
   return a;
 }
 
+const SITE_URL = "https://impulse-voting.vercel.app";
+
+function deepLinkFor(id) {
+  return `${SITE_URL}/?startup=${id}`;
+}
+
+function startupIdFromUrl() {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("startup");
+}
+
 const VOTE_END = new Date("2026-10-01T23:59:00+02:00");
-const MEDALS = ["🥇", "🥈", "🥉"];
 
 function useCountdown(target) {
   const [left, setLeft] = useState(target.getTime() - Date.now());
@@ -66,40 +77,25 @@ function useCountdown(target) {
 }
 
 export default function VotingApp() {
-  const [votes, setVotes] = useState({});
   const [email, setEmail] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [step, setStep] = useState("browse");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [randomOrder] = useState(() => shuffle(STARTUPS));
-  const [shortlist, setShortlist] = useState(new Set());
-  const [showShortlistOnly, setShowShortlistOnly] = useState(false);
   const [detailId, setDetailId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [resent, setResent] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [randomOrder] = useState(() => shuffle(STARTUPS));
   const countdown = useCountdown(VOTE_END);
   const selected = STARTUPS.find(s => s.id === selectedId);
   const detailStartup = STARTUPS.find(s => s.id === detailId);
 
-  async function loadVotes() {
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/votes?select=startup_id&verified=eq.true`,
-        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-      );
-      const data = await res.json();
-      const counts = {};
-      data.forEach(row => { counts[row.startup_id] = (counts[row.startup_id] || 0) + 1; });
-      setVotes(counts);
-    } catch(e) { console.error(e); }
-    setLoading(false);
-  }
-
-  useEffect(() => { loadVotes(); }, []);
+  useEffect(() => {
+    const sharedId = startupIdFromUrl();
+    if (sharedId && STARTUPS.some(s => s.id === sharedId)) {
+      setDetailId(sharedId);
+    }
+  }, []);
 
   async function handleVote() {
     if (!validateEmail(email)) { setError("Please enter a valid email address."); return; }
@@ -111,8 +107,8 @@ export default function VotingApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.toLowerCase().trim(), startup_id: selectedId })
       });
-      if (res.status === 409) { setHasVoted(true); setStep("already"); }
-      else if (res.ok) { setHasVoted(true); setStep("check_email"); }
+      if (res.status === 409) { setStep("already"); }
+      else if (res.ok) { setStep("check_email"); }
       else { setError("Something went wrong. Please try again."); }
     } catch(e) {
       setError("Something went wrong. Please try again.");
@@ -133,99 +129,62 @@ export default function VotingApp() {
     } catch(e) { console.error(e); }
   }
 
-  function shareVote() {
-    const text = selected ? `I just voted for ${selected.name} in the Impulse x Sports Tech Nation Startup Competition 2026!` : "";
-    const url = "https://impulse-voting.vercel.app";
-    if (navigator.share) {
-      navigator.share({ text, url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(`${text} ${url}`);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    }
+  function shareLinkedIn() {
+    if (!selected) return;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(deepLinkFor(selected.id))}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  function toggleShortlist(id, e) {
-    e.stopPropagation();
-    setShortlist(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+  function copyVotingLink() {
+    if (!selected) return;
+    navigator.clipboard.writeText(deepLinkFor(selected.id));
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   }
 
-  const totalVotes = Object.values(votes).reduce((a,b) => a+b, 0);
-  const maxVotes = Math.max(1, ...Object.values(votes));
-  const sortedByVotes = [...STARTUPS].sort((a,b) => (votes[b.id]||0) - (votes[a.id]||0));
-  const baseList = hasVoted ? sortedByVotes : randomOrder;
-
-  let displayList = baseList;
-  if (searchQuery.trim()) {
-    const q = searchQuery.trim().toLowerCase();
-    displayList = displayList.filter(s => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
+  function goVote(id) {
+    setSelectedId(id);
+    setStep("confirm");
+    setError("");
+    setEmail("");
+    setDetailId(null);
   }
-  if (showShortlistOnly) {
-    displayList = displayList.filter(s => shortlist.has(s.id));
-  }
-
-  if (loading) return (
-    <div style={{minHeight:"100vh", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center"}}>
-      <div style={{color:C.textDim, fontSize:14}}>Warming up the leaderboard...</div>
-    </div>
-  );
 
   return (
     <div style={{minHeight:"100vh", background:C.bg, backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 0L56 16.2V49.8L28 66L0 49.8V16.2Z' fill='none' stroke='%23233052' stroke-width='1' opacity='0.35'/%3E%3C/svg%3E")`, backgroundSize:"56px 100px", color:C.text, fontFamily:"Inter, system-ui, sans-serif"}}>
       <style>{`
         @keyframes popIn { 0% { transform: translateY(6px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-70px) rotate(20deg); opacity: 0; } }
-        @keyframes leaderGlow { 0%, 100% { box-shadow: 0 0 0 1px ${C.accentBorder}; } 50% { box-shadow: 0 0 14px 1px ${C.accentBorder}; } }
         @keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
       `}</style>
-      <div style={{borderBottom:`1px solid ${C.divider}`, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, background:C.header, zIndex:10, flexWrap:"wrap", gap:16}}>
-        <div style={{display:"flex", alignItems:"center", gap:16, flexWrap:"wrap"}}>
-          <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
-          <div style={{width:1, height:26, background:C.divider}} />
-          <img src={STN_LOGO} alt="Sports Tech Nation" style={{height:22, width:"auto"}} />
-          <div style={{width:1, height:26, background:C.divider}} />
-          <nav style={{display:"flex", alignItems:"center", gap:16}}>
-            <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>About us</a>
-            <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Startup Competition</a>
-            <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Get your ticket</a>
-          </nav>
-        </div>
-        <div style={{fontSize:11, color:C.textDim, textAlign:"right"}}>
-          {hasVoted ? (
-            <>
-              <div style={{color:C.accent, fontSize:22, fontWeight:700}}>{totalVotes}</div>
-              <div>total votes</div>
-            </>
-          ) : (
-            <div style={{fontSize:11, color:C.textFaint}}>🗳️ Voting is open</div>
-          )}
-        </div>
+      <div style={{borderBottom:`1px solid ${C.divider}`, padding:"16px 24px", display:"flex", alignItems:"center", position:"sticky", top:0, background:C.header, zIndex:10, flexWrap:"wrap", gap:16}}>
+        <img src={IMPULSE_LOGO} alt="Impulse Network" style={{height:34, width:"auto"}} />
+        <div style={{width:1, height:26, background:C.divider}} />
+        <img src={STN_LOGO} alt="Sports Tech Nation" style={{height:22, width:"auto"}} />
+        <div style={{width:1, height:26, background:C.divider}} />
+        <nav style={{display:"flex", alignItems:"center", gap:16}}>
+          <a href="https://impulse.network" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>About us</a>
+          <a href="https://impulse.network/join/startups/" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Startup Competition</a>
+          <a href="https://uniclubs.ch/hsg/clubs/impulse-network/events/impulse-summit-2026/checkout" target="_blank" rel="noreferrer" style={{color:C.textDim, fontSize:12.5, whiteSpace:"nowrap"}}>Get your ticket</a>
+        </nav>
       </div>
 
-      <div style={{maxWidth:760, margin:"0 auto", padding:"32px 16px", paddingBottom: shortlist.size > 0 && step === "browse" ? 90 : 32}}>
+      <div style={{maxWidth:760, margin:"0 auto", padding:"32px 16px"}}>
         {step === "browse" && (
           <>
-            <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:8}}>
+            <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:20}}>
               <div>
-                <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:6}}>Choose who takes the <span style={{color:C.accent}}>stage</span>.</div>
-                <p style={{color:C.textDim, fontSize:14, margin:"0 0 4px"}}>Vote for the startup you want to see at Impulse Summit 2026.</p>
-                <div style={{fontSize:12, color:C.textFaint}}>4 startups advance · 1 verified vote per person</div>
+                <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:6}}>Back your favourite <span style={{color:C.accent}}>startup</span>.</div>
+                <p style={{color:C.textDim, fontSize:14, margin:"0 0 6px"}}>Help choose the 4 startups pitching live at Impulse Summit 2026.</p>
+                <div style={{fontSize:12, color:C.textFaint}}>10 startups · 4 advance · 1 verified vote per email · Voting ends Oct 1</div>
               </div>
               {countdown && (
                 <div style={{fontSize:11, color:C.textDim, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:14, padding:"6px 12px", textAlign:"right", whiteSpace:"nowrap"}}>
-                  <div>Voting closes in <span style={{color:C.accent, fontWeight:700}}>{countdown.days}d {countdown.hours}h</span></div>
+                  <div>Closes in <span style={{color:C.accent, fontWeight:700}}>{countdown.days}d {countdown.hours}h</span></div>
                   <div style={{fontSize:10, color:C.textFaint, marginTop:2}}>could close sooner, capped at 3,000 votes</div>
                 </div>
               )}
             </div>
-
-            <input type="text" placeholder="Search by name or category" value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              style={{width:"100%", background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"10px 14px", color:C.text, fontSize:13, marginBottom:16, boxSizing:"border-box", outline:"none"}} />
 
             <div style={{display:"flex", alignItems:"flex-start", gap:10, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:10, padding:"12px 16px", marginBottom:12}}>
               <span style={{fontSize:16, lineHeight:1.4}}>✉️</span>
@@ -236,33 +195,17 @@ export default function VotingApp() {
             <div style={{display:"flex", alignItems:"flex-start", gap:10, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 16px", marginBottom:24}}>
               <span style={{fontSize:16, lineHeight:1.4}}>🏆</span>
               <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
-                Finalists pitch live at the <strong style={{color:C.text}}>Impulse Summit</strong>, October 29 at 5:45 PM.
+                The <strong style={{color:C.text}}>4 startups with the most verified public votes</strong> advance, pitching live at the Impulse Summit, October 29 at 5:45 PM.
               </div>
             </div>
 
-            {displayList.length === 0 && (
-              <div style={{textAlign:"center", color:C.textFaint, fontSize:13, padding:"32px 0"}}>No startups match that search.</div>
-            )}
-
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
-              {displayList.map((s) => {
-                const v = votes[s.id] || 0;
-                const pct = hasVoted ? Math.round((v / maxVotes) * 100) : 0;
-                const rank = hasVoted ? sortedByVotes.findIndex(x => x.id === s.id) : -1;
-                const isLeader = hasVoted && rank === 0 && v > 0;
-                const isShortlisted = shortlist.has(s.id);
-                return (
+              {randomOrder.map((s) => (
                 <div key={s.id} onClick={() => setDetailId(s.id)}
-                  style={{background:C.panel, border:`1px solid ${isLeader ? C.accent : C.panelBorder}`, borderRadius:12, padding:"16px 20px", cursor:"pointer", position:"relative", overflow:"hidden", transition:"border-color 0.15s", animation: isLeader ? "leaderGlow 2.5s ease-in-out infinite" : "none"}}
+                  style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:12, padding:"16px 20px", cursor:"pointer", transition:"border-color 0.15s"}}
                   onMouseOver={e => e.currentTarget.style.borderColor=C.accent}
-                  onMouseOut={e => e.currentTarget.style.borderColor=isLeader ? C.accent : C.panelBorder}>
-                  {hasVoted && <div style={{position:"absolute", left:0, bottom:0, height:2, width:`${pct}%`, background:C.accent, opacity:0.5, transition:"width 0.4s"}} />}
+                  onMouseOut={e => e.currentTarget.style.borderColor=C.panelBorder}>
                   <div style={{display:"flex", alignItems:"center", gap:14}}>
-                    {hasVoted && (
-                      <div style={{fontSize: rank < 3 ? 18 : rank === 3 ? 16 : 12, color:C.textFaint, width:20, textAlign:"center", flexShrink:0}}>
-                        {rank < 3 ? MEDALS[rank] : rank === 3 ? "🍫" : rank+1}
-                      </div>
-                    )}
                     <div style={{width:48, height:48, borderRadius:10, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
                       <img src={s.logo} alt={s.name} style={{width:40, height:40, objectFit:"contain"}} />
                     </div>
@@ -273,20 +216,16 @@ export default function VotingApp() {
                         <span style={{fontSize:12, color:C.textDim}}>{s.tagline}</span>
                       </div>
                     </div>
-                    <button onClick={(e) => toggleShortlist(s.id, e)} title="Shortlist"
-                      style={{background:"none", border:"none", fontSize:18, cursor:"pointer", color: isShortlisted ? C.accent : C.textFaint, flexShrink:0, padding:4}}>
-                      {isShortlisted ? "★" : "☆"}
-                    </button>
-                    {hasVoted && (
-                      <div style={{textAlign:"center", flexShrink:0}}>
-                        <div style={{fontSize:18, fontWeight:700, color:v > 0 ? C.accent : C.textFaint}}>{v}</div>
-                        <div style={{fontSize:10, color:C.textFaint}}>votes</div>
-                      </div>
-                    )}
-                    <div style={{color:C.accent, fontSize:12, fontWeight:700, flexShrink:0, whiteSpace:"nowrap"}}>View →</div>
+                    <div style={{display:"flex", alignItems:"center", gap:12, flexShrink:0}}>
+                      <span style={{fontSize:11, color:C.textFaint, whiteSpace:"nowrap"}}>Learn more</span>
+                      <button onClick={(e) => { e.stopPropagation(); goVote(s.id); }}
+                        style={{background:C.accent, color:C.accentText, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap"}}>
+                        Vote →
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )})}
+              ))}
             </div>
           </>
         )}
@@ -299,9 +238,7 @@ export default function VotingApp() {
                 <div style={{width:64, height:64, borderRadius:12, background:selected.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden"}}>
                   <img src={selected.logo} alt={selected.name} style={{width:54, height:54, objectFit:"contain"}} />
                 </div>
-                <div>
-                  <div style={{fontWeight:700, fontSize:20}}>{selected.name}</div>
-                </div>
+                <div style={{fontWeight:700, fontSize:20}}>{selected.name}</div>
               </div>
               <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
                 <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"2px 7px"}}>{selected.category}</span>
@@ -316,7 +253,7 @@ export default function VotingApp() {
             </div>
             <div style={{marginBottom:16}}>
               <div style={{fontSize:13, color:C.textDim, marginBottom:8}}>Enter your email to confirm your vote</div>
-              <input type="email" placeholder="your@email.com" value={email}
+              <input type="email" placeholder="your@email.com" value={email} autoFocus
                 onChange={e => { setEmail(e.target.value); setError(""); }}
                 onKeyDown={e => e.key === "Enter" && handleVote()}
                 style={{width:"100%", background:C.header, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 16px", color:C.text, fontSize:14, outline:"none", boxSizing:"border-box"}} />
@@ -329,8 +266,8 @@ export default function VotingApp() {
           </div>
         )}
 
-        {step === "check_email" && (
-          <div style={{textAlign:"center", maxWidth:400, margin:"60px auto", position:"relative"}}>
+        {step === "check_email" && selected && (
+          <div style={{textAlign:"center", maxWidth:420, margin:"60px auto", position:"relative"}}>
             <div style={{position:"absolute", top:0, left:"50%", width:0, height:0}}>
               {["🎉","🍫","✨","🎉","🍫"].map((e, i) => (
                 <span key={i} style={{position:"absolute", left:(i-2)*22, fontSize:18, animation:`floatUp 1.6s ease-out ${i*0.12}s 1`}}>{e}</span>
@@ -339,8 +276,8 @@ export default function VotingApp() {
             <div style={{fontSize:48, marginBottom:16, animation:"popIn 0.4s ease-out"}}>📧</div>
             <div style={{fontSize:24, fontWeight:700, marginBottom:8}}>Almost done. Check your inbox</div>
             <div style={{color:C.textDim, fontSize:14, marginBottom:8}}>We sent a verification link to <span style={{color:C.accent}}>{maskEmail(email)}</span></div>
-            <div style={{color:C.textDim, fontSize:14, marginBottom:20}}>Your vote counts once you confirm it.</div>
-            <div style={{fontSize:12, color:C.textFaint, marginBottom:8, display:"flex", gap:10, justifyContent:"center"}}>
+            <div style={{color:C.textDim, fontSize:14, marginBottom:16}}>Your vote counts once you confirm it.</div>
+            <div style={{fontSize:12, color:C.textFaint, marginBottom:6, display:"flex", gap:10, justifyContent:"center"}}>
               <button onClick={resendEmail} style={{background:"none", border:"none", color:C.accent, cursor:"pointer", fontSize:12, textDecoration:"underline", padding:0}}>
                 {resent ? "Sent again!" : "Resend email"}
               </button>
@@ -349,12 +286,20 @@ export default function VotingApp() {
                 Change email
               </button>
             </div>
-            <div style={{fontSize:12, color:C.textFaint, marginBottom:20}}>The link expires in 24 hours.</div>
-            <div style={{fontSize:13, color:C.textDim, marginBottom:28}}>Thanks for voting! Here's a virtual chocolate for you 🍫</div>
-            <button onClick={shareVote} style={{background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"12px 24px", cursor:"pointer", fontSize:13, fontWeight:700, marginRight:10}}>
-              {shareCopied ? "Link copied!" : "Share your vote"}
-            </button>
-            <button onClick={() => setStep("browse")} style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 24px", color:C.textDim, cursor:"pointer", fontSize:13}}>Back to results</button>
+            <div style={{fontSize:12, color:C.textFaint, marginBottom:24}}>The link expires in 24 hours. Here's a virtual chocolate for you 🍫</div>
+
+            <div style={{borderTop:`1px solid ${C.panelBorder}`, paddingTop:20}}>
+              <div style={{fontSize:13, color:C.textDim, marginBottom:14}}>Help <strong style={{color:C.text}}>{selected.name}</strong> reach the Impulse Summit stage.</div>
+              <div style={{display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap"}}>
+                <button onClick={shareLinkedIn} style={{background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"12px 20px", cursor:"pointer", fontSize:13, fontWeight:700}}>
+                  Share on LinkedIn
+                </button>
+                <button onClick={copyVotingLink} style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 20px", color:C.text, cursor:"pointer", fontSize:13, fontWeight:700}}>
+                  {linkCopied ? "Link copied!" : "Copy voting link"}
+                </button>
+              </div>
+            </div>
+            <button onClick={() => setStep("browse")} style={{marginTop:24, background:"none", border:"none", color:C.textFaint, cursor:"pointer", fontSize:12, textDecoration:"underline", padding:0}}>Back to all startups</button>
           </div>
         )}
 
@@ -363,19 +308,10 @@ export default function VotingApp() {
             <div style={{fontSize:48, marginBottom:16}}>✋</div>
             <div style={{fontSize:22, fontWeight:700, marginBottom:8}}>Already voted</div>
             <div style={{color:C.textDim, fontSize:14, marginBottom:24}}>This email has already been used to vote, one vote per person keeps things fair.</div>
-            <button onClick={() => { setStep("browse"); setEmail(""); }} style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 24px", color:C.textDim, cursor:"pointer", fontSize:13}}>Back to results</button>
+            <button onClick={() => { setStep("browse"); setEmail(""); }} style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 24px", color:C.textDim, cursor:"pointer", fontSize:13}}>Back to all startups</button>
           </div>
         )}
       </div>
-
-      {shortlist.size > 0 && step === "browse" && (
-        <div style={{position:"fixed", left:0, right:0, bottom:0, background:C.header, borderTop:`1px solid ${C.panelBorder}`, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:16, zIndex:20, animation:"slideUp 0.25s ease-out"}}>
-          <span style={{fontSize:13, color:C.text}}>{shortlist.size} shortlisted</span>
-          <button onClick={() => setShowShortlistOnly(v => !v)} style={{background:C.accent, color:C.accentText, border:"none", borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:700, cursor:"pointer"}}>
-            {showShortlistOnly ? "Show all startups" : "Compare shortlist"}
-          </button>
-        </div>
-      )}
 
       {detailStartup && step === "browse" && (
         <div style={{position:"fixed", inset:0, background:"rgba(8,11,20,0.7)", zIndex:50, display:"flex", alignItems:"flex-end", justifyContent:"center"}} onClick={() => setDetailId(null)}>
@@ -396,20 +332,14 @@ export default function VotingApp() {
               <div style={{fontSize:11, fontWeight:700, color:C.textFaint, textTransform:"uppercase", letterSpacing:0.4, marginBottom:4}}>What problem are they solving?</div>
               <div style={{fontSize:13.5, color:C.text, lineHeight:1.5}}>{detailStartup.problem}</div>
             </div>
-            <div style={{marginBottom:14}}>
+            <div style={{marginBottom:22}}>
               <div style={{fontSize:11, fontWeight:700, color:C.textFaint, textTransform:"uppercase", letterSpacing:0.4, marginBottom:4}}>How does it work?</div>
               <div style={{fontSize:13.5, color:C.text, lineHeight:1.5}}>{detailStartup.how}</div>
             </div>
-            <div style={{display:"flex", gap:10}}>
-              <button onClick={(e) => toggleShortlist(detailStartup.id, e)}
-                style={{background:shortlist.has(detailStartup.id) ? C.accentSoft : C.header, border:`1px solid ${shortlist.has(detailStartup.id) ? C.accent : C.panelBorder}`, borderRadius:10, padding:"12px 16px", color:C.text, cursor:"pointer", fontSize:13, whiteSpace:"nowrap"}}>
-                {shortlist.has(detailStartup.id) ? "★ Shortlisted" : "☆ Shortlist"}
-              </button>
-              <button onClick={() => { setSelectedId(detailStartup.id); setStep("confirm"); setError(""); setEmail(""); setDetailId(null); }}
-                style={{flex:1, background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"12px 16px", fontSize:14, fontWeight:700, cursor:"pointer"}}>
-                Vote for {detailStartup.name}
-              </button>
-            </div>
+            <button onClick={() => goVote(detailStartup.id)}
+              style={{width:"100%", background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"14px", fontSize:14, fontWeight:700, cursor:"pointer"}}>
+              Vote for {detailStartup.name}
+            </button>
           </div>
         </div>
       )}
