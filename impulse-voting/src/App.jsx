@@ -184,18 +184,38 @@ export default function VotingApp() {
       <div style={{maxWidth:760, margin:"0 auto", padding:"32px 16px"}}>
         {step === "browse" && (
           <>
-            <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:6}}>Back your favourite <span style={{color:C.accent}}>startup</span>.</div>
-            <p style={{color:C.textDim, fontSize:14, margin:"0 0 6px"}}>Help choose the 4 startups pitching live at Impulse Summit 2026.</p>
-            <div style={{fontSize:12, color:C.textFaint, marginBottom:20}}>
-              10 startups · 4 advance · 1 verified vote per email · Voting ends Oct 1
-              {countdown && <> · closes in <span style={{color:C.accent, fontWeight:700}}>{countdown.days}d {countdown.hours}h</span> (could close sooner, capped at 3,000 votes)</>}
+            <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:8}}>Back your favourite <span style={{color:C.accent}}>startup</span>.</div>
+            <p style={{color:C.textDim, fontSize:14, margin:"0 0 14px"}}>Help choose the 4 startups pitching live at Impulse Summit 2026.</p>
+
+            <div style={{display:"flex", flexWrap:"wrap", gap:"4px 10px", fontSize:12, color:C.textFaint, marginBottom:18}}>
+              <span>10 startups</span><span>·</span>
+              <span>4 advance</span><span>·</span>
+              <span>1 vote / email</span><span>·</span>
+              <span>ends Oct 1</span>
             </div>
 
-            <div style={{fontSize:13, color:C.textDim, lineHeight:1.5, marginBottom:8}}>
-              ✉️ <strong style={{color:C.text}}>Your vote only counts once confirmed.</strong> Check your inbox after voting and click the link.
-            </div>
-            <div style={{fontSize:13, color:C.textDim, lineHeight:1.5, marginBottom:24}}>
-              🏆 The <strong style={{color:C.text}}>4 startups with the most verified public votes</strong> advance, pitching live October 29 at 5:45 PM.
+            {countdown && (
+              <div style={{display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:26}}>
+                <span style={{fontSize:21, fontWeight:800, color:C.accent}}>{countdown.days}d {countdown.hours}h</span>
+                <span style={{fontSize:12.5, color:C.textFaint}}>left to vote, could close sooner if we hit 3,000 votes</span>
+              </div>
+            )}
+
+            <div style={{display:"flex", flexDirection:"column", gap:16, marginBottom:30}}>
+              <div style={{display:"flex", gap:12, alignItems:"flex-start"}}>
+                <span style={{fontSize:18, lineHeight:1.3}}>✉️</span>
+                <div style={{fontSize:13, color:C.textDim, lineHeight:1.55}}>
+                  <strong style={{color:C.text}}>Your vote only counts once confirmed.</strong><br />
+                  Check your inbox after voting and click the link.
+                </div>
+              </div>
+              <div style={{display:"flex", gap:12, alignItems:"flex-start"}}>
+                <span style={{fontSize:18, lineHeight:1.3}}>🏆</span>
+                <div style={{fontSize:13, color:C.textDim, lineHeight:1.55}}>
+                  <strong style={{color:C.text}}>Top 4 by verified public votes advance.</strong><br />
+                  They pitch live at the Impulse Summit, October 29 at 5:45 PM.
+                </div>
+              </div>
             </div>
 
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
