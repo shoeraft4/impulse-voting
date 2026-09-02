@@ -184,46 +184,30 @@ export default function VotingApp() {
       <div style={{maxWidth:760, margin:"0 auto", padding:"32px 16px"}}>
         {step === "browse" && (
           <>
-            <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:10, marginBottom:20}}>
-              <div>
-                <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:6}}>Back your favourite <span style={{color:C.accent}}>startup</span>.</div>
-                <p style={{color:C.textDim, fontSize:14, margin:"0 0 6px"}}>Help choose the 4 startups pitching live at Impulse Summit 2026.</p>
-                <div style={{fontSize:12, color:C.textFaint}}>10 startups · 4 advance · 1 verified vote per email · Voting ends Oct 1</div>
-              </div>
-              {countdown && (
-                <div style={{fontSize:11, color:C.textDim, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:14, padding:"6px 12px", textAlign:"right", whiteSpace:"nowrap"}}>
-                  <div>Closes in <span style={{color:C.accent, fontWeight:700}}>{countdown.days}d {countdown.hours}h</span></div>
-                  <div style={{fontSize:10, color:C.textFaint, marginTop:2}}>could close sooner, capped at 3,000 votes</div>
-                </div>
-              )}
+            <div style={{fontSize:26, fontWeight:800, letterSpacing:-0.5, marginBottom:6}}>Back your favourite <span style={{color:C.accent}}>startup</span>.</div>
+            <p style={{color:C.textDim, fontSize:14, margin:"0 0 6px"}}>Help choose the 4 startups pitching live at Impulse Summit 2026.</p>
+            <div style={{fontSize:12, color:C.textFaint, marginBottom:20}}>
+              10 startups · 4 advance · 1 verified vote per email · Voting ends Oct 1
+              {countdown && <> · closes in <span style={{color:C.accent, fontWeight:700}}>{countdown.days}d {countdown.hours}h</span> (could close sooner, capped at 3,000 votes)</>}
             </div>
 
-            <div style={{display:"flex", alignItems:"flex-start", gap:10, background:C.accentSoft, borderLeft:`3px solid ${C.accent}`, borderRadius:"0 10px 10px 0", padding:"12px 16px", marginBottom:10}}>
-              <span style={{fontSize:16, lineHeight:1.4}}>✉️</span>
-              <div style={{fontSize:13, color:C.text, lineHeight:1.5}}>
-                <strong>Your vote only counts once confirmed.</strong> Check your inbox after voting and click the link, unconfirmed votes aren't counted.
-              </div>
+            <div style={{fontSize:13, color:C.textDim, lineHeight:1.5, marginBottom:8}}>
+              ✉️ <strong style={{color:C.text}}>Your vote only counts once confirmed.</strong> Check your inbox after voting and click the link.
             </div>
-            <div style={{display:"flex", alignItems:"flex-start", gap:10, background:"transparent", borderLeft:`3px solid ${C.panelBorder}`, borderRadius:"0 10px 10px 0", padding:"10px 16px", marginBottom:22}}>
-              <span style={{fontSize:16, lineHeight:1.4}}>🏆</span>
-              <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
-                The <strong style={{color:C.text}}>4 startups with the most verified public votes</strong> advance, pitching live at the Impulse Summit, October 29 at 5:45 PM.
-              </div>
+            <div style={{fontSize:13, color:C.textDim, lineHeight:1.5, marginBottom:24}}>
+              🏆 The <strong style={{color:C.text}}>4 startups with the most verified public votes</strong> advance, pitching live October 29 at 5:45 PM.
             </div>
 
             <div style={{display:"flex", flexDirection:"column", gap:12}}>
               {randomOrder.map((s, idx) => (
                 <div key={s.id} className="vote-card" onClick={() => setDetailId(s.id)}
-                  style={{background:`linear-gradient(155deg, ${C.panel} 0%, ${C.panel} 65%, ${hexToRgba(s.hue, 0.07)} 140%)`, border:`1px solid ${C.panelBorder}`, borderTop:`3px solid ${s.hue}`, borderRadius:14, padding:"14px 16px", cursor:"pointer", boxShadow:"0 4px 16px rgba(0,0,0,0.22)", animation:`cardIn 0.35s ease-out ${idx * 0.045}s both`}}>
+                  style={{background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:14, padding:"14px 16px", cursor:"pointer", animation:`cardIn 0.3s ease-out ${idx * 0.03}s both`}}>
                   <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:10}}>
-                    <div style={{position:"relative", width:40, height:40, flexShrink:0}}>
-                      <div style={{position:"absolute", inset:-9, background:`radial-gradient(circle, ${hexToRgba(s.hue, 0.4)}, transparent 72%)`, filter:"blur(5px)"}} />
-                      <div style={{position:"relative", width:40, height:40, borderRadius:9, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden"}}>
-                        <img src={s.logo} alt={s.name} style={{width:32, height:32, objectFit:"contain"}} />
-                      </div>
+                    <div style={{width:40, height:40, borderRadius:9, background:s.chipDark ? "#000000" : C.logoChip, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden"}}>
+                      <img src={s.logo} alt={s.name} style={{width:32, height:32, objectFit:"contain"}} />
                     </div>
                     <div style={{flex:1, minWidth:0, fontWeight:600, fontSize:15, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{s.name}</div>
-                    <span style={{fontSize:9.5, fontWeight:700, letterSpacing:0.3, textTransform:"uppercase", color:s.hue, background:hexToRgba(s.hue, 0.14), border:`1px solid ${hexToRgba(s.hue, 0.4)}`, borderRadius:6, padding:"3px 7px", flexShrink:0, whiteSpace:"nowrap"}}>{s.icon} {s.category}</span>
+                    <span style={{fontSize:9.5, fontWeight:700, letterSpacing:0.3, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"3px 7px", flexShrink:0, whiteSpace:"nowrap"}}>{s.category}</span>
                   </div>
                   <div style={{fontSize:12.5, color:C.textDim, lineHeight:1.45, marginBottom:12, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>{s.tagline}</div>
                   <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
@@ -250,7 +234,7 @@ export default function VotingApp() {
                 <div style={{fontWeight:700, fontSize:20}}>{selected.name}</div>
               </div>
               <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:selected.hue, background:hexToRgba(selected.hue, 0.14), border:`1px solid ${hexToRgba(selected.hue, 0.4)}`, borderRadius:6, padding:"2px 7px"}}>{selected.icon} {selected.category}</span>
+                <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"2px 7px"}}>{selected.category}</span>
                 <span style={{fontSize:13, color:C.textDim}}>{selected.tagline}</span>
               </div>
             </div>
@@ -334,7 +318,7 @@ export default function VotingApp() {
               </div>
               <div>
                 <div style={{fontWeight:700, fontSize:19, marginBottom:4}}>{detailStartup.name}</div>
-                <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:detailStartup.hue, background:hexToRgba(detailStartup.hue, 0.14), border:`1px solid ${hexToRgba(detailStartup.hue, 0.4)}`, borderRadius:6, padding:"2px 7px"}}>{detailStartup.icon} {detailStartup.category}</span>
+                <span style={{fontSize:10, fontWeight:700, letterSpacing:0.4, textTransform:"uppercase", color:C.accent, background:C.accentSoft, border:`1px solid ${C.accentBorder}`, borderRadius:6, padding:"2px 7px"}}>{detailStartup.category}</span>
               </div>
             </div>
             <div style={{marginBottom:14}}>
