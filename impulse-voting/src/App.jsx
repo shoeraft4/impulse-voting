@@ -197,7 +197,7 @@ export default function VotingApp() {
             {countdown && (
               <div style={{display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:26}}>
                 <span style={{fontSize:21, fontWeight:800, color:C.accent}}>{countdown.days}d {countdown.hours}h</span>
-                <span style={{fontSize:12.5, color:C.textFaint}}>left to vote, could close sooner if we hit 3,000 votes</span>
+                <span style={{fontSize:12.5, color:C.textFaint}}>left to vote, could close sooner if we hit 5,000 votes</span>
               </div>
             )}
 
