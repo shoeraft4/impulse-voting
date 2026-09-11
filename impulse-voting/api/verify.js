@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const rows = await findRes.json();
 
   if (!rows.length) {
-    return res.status(200).send(`<html><body style="font-family:sans-serif;background:#0d0d0d;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;"><div style="text-align:center"><h2 style="color:#ff6b6b;">Link expired or already used</h2><p style="color:#888;">This verification link is no longer valid.</p><a href="https://impulse-voting.vercel.app" style="color:#c8ff00;">Back to voting</a></div></body></html>`);
+    return res.status(200).send(`<html><body style="font-family:sans-serif;background:#0f1626;color:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;"><div style="text-align:center"><h2 style="color:#ff6b6b;">Link expired or already used</h2><p style="color:#8b93ab;">This verification link is no longer valid.</p><a href="https://impulse-voting.vercel.app" style="color:#e2836f;">Back to Impulse Voting</a></div></body></html>`);
   }
 
   await fetch(`${SUPABASE_URL}/rest/v1/votes?token=eq.${token}`, {
@@ -21,5 +21,5 @@ export default async function handler(req, res) {
     body: JSON.stringify({ verified: true })
   });
 
-  return res.status(200).send(`<html><body style="font-family:sans-serif;background:#0d0d0d;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;"><div style="text-align:center"><h2 style="color:#c8ff00;">Vote confirmed!</h2><p style="color:#888;">Your vote has been counted. Thank you!</p><a href="https://impulse-voting.vercel.app" style="display:inline-block;margin-top:16px;background:#c8ff00;color:#0d0d0d;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">See results</a></div></body></html>`);
+  return res.status(200).send(`<html><body style="font-family:sans-serif;background:#0f1626;color:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;"><div style="text-align:center"><h2 style="color:#e2836f;">Vote confirmed!</h2><p style="color:#8b93ab;">Your vote has been counted. Thank you!</p><a href="https://impulse-voting.vercel.app" style="display:inline-block;margin-top:16px;background:#e2836f;color:#10182b;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Back to Impulse Voting</a></div></body></html>`);
 }
