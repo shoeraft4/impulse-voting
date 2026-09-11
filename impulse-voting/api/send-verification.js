@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       sender: { name: "Impulse Network", email: "vote@impulse-vote.ch" },
       to: [{ email }],
       subject: "Confirm your vote, Impulse Startup Competition 2026",
-      htmlContent: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0d0d0d;color:#fff;"><h2 style="color:#c8ff00;margin-bottom:8px;">Confirm your vote</h2><p style="color:#aaa;margin-bottom:24px;">Click the button below to confirm your vote for the Impulse Network Startup Competition 2026.</p><a href="${verifyUrl}" style="display:inline-block;background:#c8ff00;color:#0d0d0d;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Confirm my vote</a><p style="color:#555;font-size:12px;margin-top:24px;">If you did not vote, ignore this email.</p></div>`
+      htmlContent: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0f1626;color:#ffffff;"><h2 style="color:#e2836f;margin-bottom:8px;">Confirm your vote</h2><p style="color:#8b93ab;margin-bottom:24px;">Click the button below to confirm your vote for the Impulse Network Startup Competition 2026.</p><a href="${verifyUrl}" style="display:inline-block;background:#e2836f;color:#10182b;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Confirm my vote</a><p style="color:#5b6480;font-size:12px;margin-top:24px;">If you did not vote, ignore this email.</p></div>`
     })
   });
 
