@@ -290,6 +290,9 @@ export default function VotingApp() {
             <div style={{fontSize:24, fontWeight:700, marginBottom:8}}>Almost done. Check your inbox</div>
             <div style={{color:C.textDim, fontSize:14, marginBottom:8}}>We sent a verification link to <span style={{color:C.accent}}>{maskEmail(email)}</span></div>
             <div style={{color:C.textDim, fontSize:14, marginBottom:16}}>Your vote counts once you confirm it.</div>
+            <div style={{fontSize:12.5, color:C.textDim, background:C.panel, border:`1px solid ${C.panelBorder}`, borderRadius:8, padding:"10px 14px", marginBottom:16}}>
+              Don't see it? Check your <strong style={{color:C.text}}>spam or junk folder</strong>, it sometimes lands there.
+            </div>
             <div style={{fontSize:12, color:C.textFaint, marginBottom:6, display:"flex", gap:10, justifyContent:"center"}}>
               <button onClick={resendEmail} style={{background:"none", border:"none", color:C.accent, cursor:"pointer", fontSize:12, textDecoration:"underline", padding:0}}>
                 {resent ? "Sent again!" : "Resend email"}
