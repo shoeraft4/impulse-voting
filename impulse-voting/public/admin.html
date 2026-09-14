@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Impulse Voting, Admin</title>
+<style>
+  body { margin:0; font-family:Inter, system-ui, sans-serif; background:#0f1626; color:#ffffff; min-height:100vh; }
+  .wrap { max-width:520px; margin:0 auto; padding:40px 16px; }
+  h1 { font-size:22px; margin-bottom:24px; }
+  input { width:100%; box-sizing:border-box; background:#161f35; border:1px solid #26314c; border-radius:10px; padding:12px 16px; color:#fff; font-size:14px; margin-bottom:12px; }
+  button { background:#e2836f; color:#10182b; border:none; border-radius:10px; padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
+  .row { display:flex; align-items:center; justify-content:space-between; background:#161f35; border:1px solid #26314c; border-radius:10px; padding:12px 16px; margin-bottom:8px; }
+  .name { font-weight:600; font-size:14px; }
+  .count { font-weight:700; color:#e2836f; font-size:16px; }
+  .totals { font-size:12.5px; color:#8b93ab; margin-bottom:20px; }
+  .error { color:#ff6b6b; font-size:13px; margin-bottom:12px; }
+  .refresh { font-size:12px; color:#8b93ab; background:none; border:none; text-decoration:underline; cursor:pointer; padding:0; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Impulse Voting, live results (internal)</h1>
+
+  <div id="login">
+    <input id="password" type="password" placeholder="Password" />
+    <button id="loginBtn">View results</button>
+    <div id="loginError" class="error"></div>
+  </div>
+
+  <div id="results" style="display:none;">
+    <div class="totals" id="totals"></div>
+    <div id="rows"></div>
+    <button class="refresh" id="refreshBtn">Refresh</button>
+  </div>
+</div>
+
+<script>
+  const NAMES = {
+    klubbase: "KlubBase",
+    fitzelt: "FITZELT",
+    game1: "Game1.ai",
+    allstars: "Allstars AI",
+    pulse: "PULSE Sport",
+    hokd: "HOKD",
+    pin: "PIN Sport App",
+    augo: "Augo",
+    crion: "Crion",
+    sporthype: "Sporthype"
+  };
+
+  let currentPassword = "";
+
+  async function fetchStats(password) {
+    const res = await fetch("/api/admin-stats?password=" + encodeURIComponent(password));
+    if (!res.ok) throw new Error("Wrong password or request failed.");
+    return res.json();
+  }
+
+  function render(data) {
+    document.getElementById("totals").textContent =
+      data.total_verified + " confirmed votes" +
+      (data.total_pending ? " · " + data.total_pending + " pending confirmation" : "");
+
+    const ids = Object.keys(NAMES).sort((a, b) => (data.counts[b] || 0) - (data.counts[a] || 0));
+    const rowsEl = document.getElementById("rows");
+    rowsEl.innerHTML = "";
+    ids.forEach(id => {
+      const div = document.createElement("div");
+      div.className = "row";
+      div.innerHTML = "<span class='name'>" + NAMES[id] + "</span><span class='count'>" + (data.counts[id] || 0) + "</span>";
+      rowsEl.appendChild(div);
+    });
+  }
+
+  async function login() {
+    const password = document.getElementById("password").value;
+    document.getElementById("loginError").textContent = "";
+    try {
+      const data = await fetchStats(password);
+      currentPassword = password;
+      document.getElementById("login").style.display = "none";
+      document.getElementById("results").style.display = "block";
+      render(data);
+    } catch (e) {
+      document.getElementById("loginError").textContent = "Wrong password.";
+    }
+  }
+
+  async function refresh() {
+    try {
+      const data = await fetchStats(currentPassword);
+      render(data);
+    } catch (e) {
+      document.getElementById("loginError").textContent = "Session expired, reload the page.";
+    }
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", login);
+  document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+  document.getElementById("refreshBtn").addEventListener("click", refresh);
+</script>
+</body>
+</html>
