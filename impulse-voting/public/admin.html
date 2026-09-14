@@ -28,6 +28,7 @@
     <input id="password" type="password" placeholder="Password" />
     <button id="loginBtn">View results</button>
     <div id="loginError" class="error"></div>
+    <button class="refresh" id="checkBtn" style="margin-top:0;">Check configuration</button>
   </div>
 
   <div id="results" style="display:none;">
@@ -55,8 +56,13 @@
 
   async function fetchStats(password) {
     const res = await fetch("/api/admin-stats?password=" + encodeURIComponent(password));
-    if (!res.ok) throw new Error("Wrong password or request failed.");
-    return res.json();
+    let body = null;
+    try { body = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      const detail = body && body.error ? body.error : ("HTTP " + res.status);
+      throw new Error(detail);
+    }
+    return body;
   }
 
   function render(data) {
@@ -85,8 +91,17 @@
       document.getElementById("results").style.display = "block";
       render(data);
     } catch (e) {
-      document.getElementById("loginError").textContent = "Wrong password.";
+      document.getElementById("loginError").textContent =
+        e.message === "wrong_password" ? "Wrong password." : "Error: " + e.message;
     }
+  }
+
+  async function checkConfig() {
+    const res = await fetch("/api/admin-stats?check=1");
+    const data = await res.json();
+    document.getElementById("loginError").textContent =
+      "ADMIN_PASSWORD set: " + data.admin_password_configured +
+      " · SUPABASE key set: " + data.supabase_key_configured;
   }
 
   async function refresh() {
@@ -101,6 +116,7 @@
   document.getElementById("loginBtn").addEventListener("click", login);
   document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
   document.getElementById("refreshBtn").addEventListener("click", refresh);
+  document.getElementById("checkBtn").addEventListener("click", checkConfig);
 </script>
 </body>
 </html>
