@@ -197,12 +197,12 @@ export default function VotingApp() {
             {countdown && (
               <div style={{display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:10}}>
                 <span style={{fontSize:21, fontWeight:800, color:C.accent}}>{countdown.days}d {countdown.hours}h</span>
-                <span style={{fontSize:12.5, color:C.textFaint}}>left to vote, could close sooner if we hit 5,000 votes</span>
+                <span style={{fontSize:12.5, color:C.textFaint}}>left to vote</span>
               </div>
             )}
 
             <div style={{fontSize:12, color:C.textFaint, marginBottom:26}}>
-              Votes are counted starting Wednesday. One vote per email address.
+              One vote per email address.
             </div>
 
             <div style={{display:"flex", flexDirection:"column", gap:16, marginBottom:30}}>
