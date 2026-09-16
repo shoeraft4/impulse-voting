@@ -5,10 +5,20 @@ export default async function handler(req, res) {
   const SUPABASE_URL = "https://ehlvuzvqornzoaftekap.supabase.co";
   const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
+  if (!SUPABASE_KEY) {
+    return res.status(500).send("SUPABASE_SERVICE_KEY is not set on this deployment");
+  }
+
   const findRes = await fetch(
     `${SUPABASE_URL}/rest/v1/votes?token=eq.${token}&verified=eq.false&select=id`,
     { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
   );
+
+  if (!findRes.ok) {
+    const errBody = await findRes.text();
+    return res.status(200).send(`<html><body style="font-family:sans-serif;background:#0f1626;color:#ffffff;padding:40px;"><h2 style="color:#ff6b6b;">Debug: Supabase query failed</h2><p>Status: ${findRes.status}</p><pre style="white-space:pre-wrap;background:#161f35;padding:16px;border-radius:8px;">${errBody}</pre></body></html>`);
+  }
+
   const rows = await findRes.json();
 
   if (!rows.length) {
