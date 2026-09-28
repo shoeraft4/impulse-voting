@@ -1,3 +1,31 @@
+async function fetchAllRows(url, headers) {
+  const pageSize = 1000;
+  let offset = 0;
+  let all = [];
+
+  while (true) {
+    const res = await fetch(url, {
+      headers: {
+        ...headers,
+        Range: `${offset}-${offset + pageSize - 1}`
+      }
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(detail);
+    }
+
+    const rows = await res.json();
+    all = all.concat(rows);
+
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return all;
+}
+
 export default async function handler(req, res) {
   try {
     // Safe diagnostic: tells you whether the env var exists on THIS deployment,
@@ -23,21 +51,26 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "SUPABASE_SERVICE_KEY is not set on this deployment" });
     }
 
-    const verifiedRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/votes?select=startup_id&verified=eq.true`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    if (!verifiedRes.ok) {
-      const t = await verifiedRes.text();
-      return res.status(502).json({ error: "supabase_error", detail: t });
-    }
-    const verifiedRows = await verifiedRes.json();
+    const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
 
-    const pendingRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/votes?select=startup_id&verified=eq.false`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    const pendingRows = pendingRes.ok ? await pendingRes.json() : [];
+    let verifiedRows, pendingRows;
+    try {
+      verifiedRows = await fetchAllRows(
+        `${SUPABASE_URL}/rest/v1/votes?select=startup_id&verified=eq.true`,
+        headers
+      );
+    } catch (e) {
+      return res.status(502).json({ error: "supabase_error", detail: String(e.message || e) });
+    }
+
+    try {
+      pendingRows = await fetchAllRows(
+        `${SUPABASE_URL}/rest/v1/votes?select=startup_id&verified=eq.false`,
+        headers
+      );
+    } catch (e) {
+      pendingRows = [];
+    }
 
     const counts = {};
     verifiedRows.forEach(row => { counts[row.startup_id] = (counts[row.startup_id] || 0) + 1; });
