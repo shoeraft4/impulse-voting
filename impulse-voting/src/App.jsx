@@ -92,6 +92,7 @@ export default function VotingApp() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [randomOrder] = useState(() => shuffle(STARTUPS));
   const countdown = useCountdown(VOTE_END);
+  const hasEnded = !countdown;
   const selected = STARTUPS.find(s => s.id === selectedId);
   const detailStartup = STARTUPS.find(s => s.id === detailId);
 
@@ -103,6 +104,7 @@ export default function VotingApp() {
   }, []);
 
   async function handleVote() {
+    if (hasEnded) { setError("Voting has closed."); return; }
     if (!validateEmail(email)) { setError("Please enter a valid email address."); return; }
     setError("");
     setSubmitting(true);
@@ -113,6 +115,7 @@ export default function VotingApp() {
         body: JSON.stringify({ email: email.toLowerCase().trim(), startup_id: selectedId })
       });
       if (res.status === 409) { setStep("already"); }
+      else if (res.status === 403) { setError("Voting has closed."); }
       else if (res.ok) { setStep("check_email"); }
       else { setError("Something went wrong. Please try again."); }
     } catch(e) {
@@ -148,6 +151,7 @@ export default function VotingApp() {
   }
 
   function goVote(id) {
+    if (hasEnded) return;
     setSelectedId(id);
     setStep("confirm");
     setError("");
@@ -197,6 +201,11 @@ export default function VotingApp() {
                 <span style={{fontSize:12.5, color:C.textFaint}}>left to vote</span>
               </div>
             )}
+            {hasEnded && (
+              <div style={{display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:10}}>
+                <span style={{fontSize:16, fontWeight:800, color:C.accent}}>Voting is now closed</span>
+              </div>
+            )}
 
             <div style={{fontSize:12, color:C.textFaint, marginBottom:26}}>
               One vote per email address.
@@ -233,9 +242,9 @@ export default function VotingApp() {
                   <div style={{fontSize:12.5, color:C.textDim, lineHeight:1.45, marginBottom:12, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>{s.tagline}</div>
                   <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
                     <span style={{fontSize:11, color:C.textFaint}}>Learn more</span>
-                    <button className="vote-btn" onClick={(e) => { e.stopPropagation(); goVote(s.id); }}
-                      style={{background:C.accent, color:C.accentText, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", transition:"filter 0.15s"}}>
-                      Vote →
+                    <button className="vote-btn" disabled={hasEnded} onClick={(e) => { e.stopPropagation(); goVote(s.id); }}
+                      style={{background:hasEnded ? C.panelBorder : C.accent, color:hasEnded ? C.textFaint : C.accentText, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12.5, fontWeight:700, cursor:hasEnded ? "not-allowed" : "pointer", whiteSpace:"nowrap", transition:"filter 0.15s"}}>
+                      {hasEnded ? "Closed" : "Vote →"}
                     </button>
                   </div>
                 </div>
@@ -273,9 +282,9 @@ export default function VotingApp() {
                 style={{width:"100%", background:C.header, border:`1px solid ${C.panelBorder}`, borderRadius:10, padding:"12px 16px", color:C.text, fontSize:14, outline:"none", boxSizing:"border-box"}} />
               {error && <div style={{color:C.danger, fontSize:12, marginTop:8}}>{error}</div>}
             </div>
-            <button onClick={handleVote} disabled={submitting}
-              style={{width:"100%", background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"14px", fontSize:15, fontWeight:700, cursor:submitting?"not-allowed":"pointer", opacity:submitting?0.7:1}}>
-              {submitting ? "Sending..." : "Vote for " + selected.name}
+            <button onClick={handleVote} disabled={submitting || hasEnded}
+              style={{width:"100%", background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"14px", fontSize:15, fontWeight:700, cursor:(submitting || hasEnded)?"not-allowed":"pointer", opacity:(submitting || hasEnded)?0.7:1}}>
+              {hasEnded ? "Voting has closed" : submitting ? "Sending..." : "Vote for " + selected.name}
             </button>
           </div>
         )}
@@ -353,9 +362,9 @@ export default function VotingApp() {
               <div style={{fontSize:11, fontWeight:700, color:C.textFaint, textTransform:"uppercase", letterSpacing:0.4, marginBottom:4}}>How does it work?</div>
               <div style={{fontSize:13.5, color:C.text, lineHeight:1.5}}>{detailStartup.how}</div>
             </div>
-            <button onClick={() => goVote(detailStartup.id)}
-              style={{width:"100%", background:C.accent, color:C.accentText, border:"none", borderRadius:10, padding:"14px", fontSize:14, fontWeight:700, cursor:"pointer"}}>
-              {`Vote for ${detailStartup.name}`}
+            <button onClick={() => goVote(detailStartup.id)} disabled={hasEnded}
+              style={{width:"100%", background:hasEnded ? C.panelBorder : C.accent, color:hasEnded ? C.textFaint : C.accentText, border:"none", borderRadius:10, padding:"14px", fontSize:14, fontWeight:700, cursor:hasEnded ? "not-allowed" : "pointer"}}>
+              {hasEnded ? "Voting has closed" : `Vote for ${detailStartup.name}`}
             </button>
           </div>
         </div>
