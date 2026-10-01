@@ -1,5 +1,11 @@
+const VOTE_END = new Date("2026-10-01T23:59:00+02:00");
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  if (Date.now() > VOTE_END.getTime()) {
+    return res.status(403).json({ error: "voting_closed" });
+  }
 
   const { email, startup_id } = req.body;
   if (!email || !startup_id) return res.status(400).json({ error: "Missing fields" });
